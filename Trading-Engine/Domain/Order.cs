@@ -2,7 +2,6 @@
 {
     public class Order
     {
-
         public string OrderId { get; set; }
         public int Price { get; set; }
         public virtual int Quantity { get; set; }

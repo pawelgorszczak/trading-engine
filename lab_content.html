@@ -1,0 +1,1112 @@
+<div class="candidate-rich-text"><div id="ot94ecje4d-instruction"><h3>Disclaimer</h3>
+
+    <p>&nbsp;</p>
+    
+    <p><em>The Matching Engine problem is split up into multiple parts, where later parts build off of the earlier parts. As a result, it may be a good idea to copy your code from a previous part when solving a later part (though you are welcome to code each part from scratch if you so desire).</em></p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Introduction</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>An "<strong>Order&nbsp;Matching Engine</strong>", or simply "<strong>Matching Engine</strong>", is an electronic system that matches "<strong>Buy</strong>" and "<strong>Sell</strong>" orders for a stock market. A trader can submit several types of orders to a matching engine, which will process the submitted orders and possibly place them into an <strong>Order Book (OB)</strong>, which is an electronic list of buy and sell orders organised by price level.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Your task for this problem is to design and implement a Matching Engine which maintains an OB. This Matching Engine should&nbsp;support multiple different types of submitted orders, as well a few other possible actions that a Trader might want to perform.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Order Book (OB) Description</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>As mentioned in the introduction, the OB is a list of buy and sell orders. Specifically, it contains two lists: a <strong>list of Buy orders</strong> and a <strong>list of Sell orders</strong>, sorted in the order of decreasing priority (i.e. the order with the highest priority is at the front of the list).</p>
+    
+    <ul>
+        <li>For Buy orders, a Buy&nbsp;order with <strong>a higher Price</strong> has higher priority than one with a lower Price. If two Buy orders have the same Price, the order that arrived in the OB <strong>earlier</strong> will have higher priority.</li>
+        <li>For Sell orders, a Sell order with <strong>a lower Price</strong> has higher priority than one with a higher Price.&nbsp;If two Sell orders have the same Price, the order that arrived in the OB <strong>earlier</strong> will have higher priority.</li>
+    </ul>
+    
+    <p>Each order will have the following attributes:</p>
+    
+    <ul>
+        <li>
+    <strong>Side</strong>: Either 'B' or 'S', representing&nbsp;the 'Buy'&nbsp;and&nbsp;'Sell' sides respectively.</li>
+        <li>
+    <strong>Order ID (string)</strong>: A unique identifier consisting of exactly 4 alphanumeric characters. This ID is case-sensitive (i.e. "abcd" is different from "ABcd").</li>
+        <li>
+    <strong>Price (integer)</strong>: The best price at which&nbsp;the trader is willing to buy or sell a single unit of stock. For a Buy order, this represents the maximum price at which they are willing to buy.&nbsp;For a Sell order, this represents the minimum price at which they are willing to sell.</li>
+        <li>
+    <strong>Quantity (integer)</strong>: The number of units of stock&nbsp;that the trader is willing to buy or sell.</li>
+    </ul>
+    
+    <p><em>Note that certain Order Types may have additional attributes, or only a subset of these attributes&nbsp;- more details can be found in the <strong>Types of Orders</strong> section.</em></p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The orders within the OB are represented in the form <strong>'[Quantity]@[Price]#[Order ID]'</strong>. For example, a Buy order represented as '450@7#iv15' represents a Buy order with the Order ID 'iv15', where the trader is willing to buy 450 units of stock&nbsp;at a price of 7 per unit of stock.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The following is an example of an OB:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@12#bG0d', '250@12#Ljup']</pre>
+    
+    <p>Where <strong>B</strong>&nbsp;represents the list of Buy orders, and&nbsp;<strong>S</strong>&nbsp;represents the list of Sell orders, sorted in descending order of priority. In this example, order 'ey7r' is the Buy order with the highest priority.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Order Matching/Execution</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>When an order gets submitted to the OB, it will get executed (sometimes partially) if there is a <strong>match </strong>with an order in the opposing Side within the OB (That is, a submitted Buy order will be matched with the Sell orders within the OB, and vice versa). A match occurs between a Buy order and a Sell order if&nbsp;the <strong>Price of the&nbsp;Buy order is greater than, or equal to, the Price of the Sell order</strong>. The quantity matched (executed) is equal to the lower of the quantities of the two matched orders, and the price used for the trade will be the <strong>Price</strong> of the Order in&nbsp;the OB (and not the submitted order).</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The matching engine will repeatedly attempt to match the submitted order with the order of highest priority in the opposing side within the OB and execute trades upon successful matches.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Consider the following OB, where a Trader has just submitted a Buy order with ID 'QpoZ' for 500 units of stock at a price of 12 per unit of stock:</p>
+    
+    <pre>Submitted buy order:<strong> '500@12#QpoZ'
+    </strong>
+    B: ['300@9#ey7r', '450@7#iv15']
+    S: [<strong>'280@10#z14R'</strong>, '200@12#bG0d', '250@14#Ljup']
+    </pre>
+    
+    <p>A match occurs between Buy order 'QpoZ' (with Price 12) and Sell order 'z14R' (with Price 10), where the quantity matched is 280 (the lower of 500 and 280). Thus, a trade will occur between orders 'QpoZ' and 'z14R' for 280 units of stock at a price of 10 per unit of stock.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Since the Sell order 'z14R' is fully executed (i.e. its remaining quantity is reduced to zero), it will be removed from the OB. The Buy order 'QpoZ' still has a remaining quantity of 220. The OB now looks like this:</p>
+    
+    <pre>Submitted buy order: <strong>'220@12#QpoZ'</strong>
+    
+    B: ['300@9#ey7r', '450@7#iv15']
+    S: ['<strong>200@12#bG0d</strong>', '250@14#Ljup']</pre>
+    
+    <p>A match occurs between Buy order 'QpoZ' and Sell order 'bG0d', and so the same process will occur.&nbsp;The Sell order 'bG0d' is fully executed and will be removed from the OB. The Buy order 'QpoZ' has a remaining quantity of 20.</p>
+    
+    <pre>Submitted buy order: '20@12#QpoZ'
+    
+    B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup']</pre>
+    
+    <p>At this point, the Buy order 'QpoZ' cannot be matched with any remaining Sell order. It&nbsp;will be added to the OB with its remaining quantity.</p>
+    
+    <pre>B: ['20@12#QpoZ', '300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup']</pre>
+    
+    <p>A total of 480 units of stock was traded during the execution of this order, and the total cost is 280 * 10 + 200 * 12 = 5200.</p>
+    
+    <p><em>Note that this is procedure for the execution of a <strong>Limit Order</strong>; other Order types may be executed differently, as seen in the <strong>Types of Orders</strong> section.</em></p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Types of Orders</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>These are the possible Orders that a Trader can submit to the Matching Engine.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Limit Order</h4>
+    
+    <p>All of the Orders that have been discussed in previous sections are Limit Orders. A limit order consists of a <strong>Side</strong> (either 'B' or 'S', for the 'Buy' and 'Sell' sides respectively), a&nbsp;<strong>Quantity</strong>, and&nbsp;a <strong>Price.</strong></p>
+    
+    <p>Upon submitting a Limit Order, the Matching Engine will execute the submitted order as long as there is a match with the opposing Side within the OB.&nbsp;If the limit order is not executed fully, it will be added to the OB with its remaining quantity, as described in the <strong>Order Matching/Execution</strong> section.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Market Order</h4>
+    
+    <p>Unlike the Limit Order, a Market Order only consists of a <strong>Side</strong> and a <strong>Quantity</strong>; it <strong>does not have a Price</strong>.</p>
+    
+    <p>Upon submitting a Market Order, the Matching Engine will repeatedly match the submitted order with the order of highest priority in the opposing side within the OB, regardless of Price. If the market order is not executed fully, the remaining quantity will be cancelled.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If a <strong>Sell</strong> Market Order is submitted with a <strong>Quantity</strong> of 400, it will be matched with order 'ey7r' for 300 units of stock, then with order 'iv15' for 100 units of stock. The OB now looks like this:</p>
+    
+    <pre>B: ['350@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If another&nbsp;<strong>Sell&nbsp;</strong>Market Order is submitted with a&nbsp;<strong>Quantity&nbsp;</strong>of 500, it will be matched with order 'iv15' for 350 units of stock.</p>
+    
+    <pre>B: []
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>Since there are no more Buy orders in the OB, no matches can be made. The remaining quantity of 150 in the Market Order will be cancelled.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Other Actions</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>Aside from submitting orders, there is another action&nbsp;that a Trader can perform.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Cancel Order</h4>
+    
+    <p>Cancel an Order, hence removing it from the OB.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Grading Criteria</h3>
+    
+    <p><br>
+    Your solution will be manually reviewed and evaluated based on <strong>correctness</strong>, <strong>design</strong> and <strong>efficiency</strong>.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Input Format</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>You may assume that the OB initially starts out empty.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The input consists of a sequence of commands - one command&nbsp;per line of input. Each line of input will be one of the following:</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>SUB LO [Side] [Order ID] [Quantity] [Price]</strong></p>
+    
+    <p>Submit a Limit Order with the specified Order ID, Quantity and Price.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>SUB MO [Side] [Order ID] [Quantity]</strong></p>
+    
+    <p>Submit a Market Order with the specified Order ID and Quantity.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>CXL [Order ID]</strong></p>
+    
+    <p>Cancel the order in the OB with the specified Order ID. If there is no order in the OB with the specified Order ID, this action should do nothing.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The input will terminate with a single line,&nbsp;<strong>END</strong>, representing the end of the sequence of actions.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Output Format</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>For each action that represents a submitted order (i.e. any action beginning with 'SUB'), output a single integer: the total cost of the units of stock that was traded during the execution of the order. If no stocks were traded during the execution, output 0.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Finally, at the end of the sequence of actions, print out the entire OB in two lines. The first line should be the list of Buy Orders in the OB; the second line should be the list of Sell Orders in the OB. The list of Buy orders should start with the string <strong>'B: '</strong>&nbsp;(without the quotes), followed by the orders in decreasing priority, separated by spaces. The list of sell orders should be printed in the same way, but beginning with <strong>'S: '</strong> instead of 'B: '. Each order should be printed in the format <strong>'[Quantity]@[Price]#[Order ID]'.</strong></p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Sample Input</h3>
+    
+    <p>&nbsp;</p>
+    
+    <pre>SUB LO B Ffuj 200 13
+    SUB LO B Yy7P 150 11
+    SUB LO B YuFU 100 13
+    SUB LO S IpD8 150 14
+    SUB LO S y93N 190 15
+    SUB LO B Y5wb 230 14
+    SUB MO B IZLO 250
+    CXL Ffuj
+    CXL 49Ze
+    END
+    </pre>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Sample Output</h3>
+    
+    <p>&nbsp;</p>
+    
+    <pre>0
+    0
+    0
+    0
+    0
+    2100
+    2850
+    B: 80@14#Y5wb 100@13#YuFU 150@11#Yy7P
+    S:
+    </pre>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Explanation</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>The first 5 orders are Limit Orders that do not get executed; they simply get added to the Order Book, which now looks like this:</p>
+    
+    <pre>B: 200@13#Ffuj 100@13#YuFU 150@11#Yy7P
+    S: 150@14#IpD8 190@15#y93N</pre>
+    
+    <p>The 6th order, 'Y5wb'&nbsp;(Buy Limit Order), matches&nbsp;with order 'IpD8' for 150 units of stock at a price of 14 per unit. The total cost is 150 * 14 = 2100. The remaining 80 units is added to the list of Buy orders.</p>
+    
+    <p>The 7th order, 'IZLO'&nbsp;(Buy&nbsp;Market Order), matches&nbsp;with order 'y93N' for 190 units of stock at a price of 15 per unit. The total cost is 190 * 15 = 2850. The remaining 60 units is cancelled.</p>
+    
+    <pre>B: 80@14#Y5wb 200@13#Ffuj 100@13#YuFU 150@11#Yy7P
+    S:</pre>
+    
+    <p>The 8th command cancels order "Ffuj".</p>
+    
+    <p>The 9th command attempts to cancel order "49Ze", but no such order exists in the OB. Therefore, nothing will happen.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Constraints</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>Each test case contains at most 100 commands.</p>
+    
+    <p>All numerical values (i.e.&nbsp;<strong>Quantities</strong>, <strong>Prices</strong>) are positive integers. You are guaranteed that any integer that appear in the input, as well as any integer value to be printed in the output, will fit in a signed 32-bit integer.</p>
+    </div></div>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <div class="candidate-rich-text"><div id="5qqgn63s5gs-instruction"><h3>Disclaimer</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p><em>The Matching Engine problem is split up into multiple parts, where later parts build off of the earlier parts. As a result, it may be a good idea to copy your code from a previous part when solving a later part (though you are welcome to code each part from scratch if you so desire).</em></p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Introduction - Part 2</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>Part 2 of the Matching Engine introduces a few new Order Types and Actions. Please read the instructions carefully before attempting to augment your code.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>New Order Types</h3>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Immediate-or-Cancel (IOC) Order</h4>
+    
+    <p>An IOC Order is similar to a Limit Order, except if the IOC Order is not executed fully, the remaining quantity will be cancelled, instead of being added to the OB. Like the Limit Order, an IOC Order consists of a&nbsp;<strong>Side</strong>, a&nbsp;<strong>Quantity</strong>&nbsp;and a&nbsp;<strong>Price</strong>.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If a&nbsp;<strong>Sell</strong>&nbsp;IOC Order is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 400 and a&nbsp;<strong>Price</strong>&nbsp;of 8, it will be matched with order 'ey7r' for 300 units of stock. The OB now looks like this:</p>
+    
+    <pre>B: ['450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']
+    </pre>
+    
+    <p>The IOC Order can no longer be matched with any Buy order. The remaining quantity of 100 is cancelled.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Fill-or-Kill (FOK) Order</h4>
+    
+    <p>An FOK Order is similar to a Limit Order, except the FOK Order will be executed&nbsp;<strong>if and only if it can be executed fully</strong>. If the FOK Order&nbsp;<strong>cannot</strong>&nbsp;be executed fully, it will&nbsp;<strong>not be executed at all&nbsp;</strong>- that is, the OB will&nbsp;<strong>remain exactly the same</strong>.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If a&nbsp;<strong>Sell</strong>&nbsp;FOK Order is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 200 and a&nbsp;<strong>Price</strong>&nbsp;of 8, it can be executed fully by being matched with order 'ey7r' for 200 units of stock. The OB now looks like this</p>
+    
+    <pre>B: ['100@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If another&nbsp;<strong>Sell</strong>&nbsp;FOK Order is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 200 and a&nbsp;<strong>Price</strong>&nbsp;of 8, it can only be executed partially. Therefore, the entire FOK order is cancelled and the OB will remain exactly the same.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Iceberg Order</h4>
+    
+    <p>An Iceberg Order is similar to a Limit Order, except it has an additional attribute called the&nbsp;<strong>Display Size</strong>. When it gets inserted into the OB, its&nbsp;<strong>Quantity</strong>&nbsp;will be initially set to be equal to the&nbsp;<strong>Display Size</strong>&nbsp;while the&nbsp;<strong>Total Quantity</strong>&nbsp;is&nbsp;<strong>hidden</strong>. When the&nbsp;<strong>Quantity</strong>&nbsp;is fully exhausted (i.e. it goes to zero), it will be replenished and re-inserted into the OB.</p>
+    
+    <p>Upon submitting an Iceberg Order, it will initially behave in the exact same way as a Limit Order, in which it repeatedly matched until a match can no longer be made.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['550@14#Ljup']</pre>
+    
+    <p>If a&nbsp;<strong>Sell</strong>&nbsp;Iceberg Order (with Order ID 'iCbg') is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 550, a&nbsp;<strong>Price</strong>&nbsp;of 9, and a&nbsp;<strong>Display Size</strong>&nbsp;of 100, it will be matched with order 'ey7r' for 300 units of stock.</p>
+    
+    <pre>Sell Iceberg Order: '250@9#iCbg'
+    
+    B: ['450@7#iv15']
+    S: ['550@14#Ljup']</pre>
+    
+    <p>The iceberg order currently has a remaining quantity of 250. However, instead of being added to OB as a Sell Order with Quantity 250, it will be added as a Sell Order&nbsp;with Quantity equal to the&nbsp;<strong>Display Size&nbsp;</strong>(i.e. 100) while the&nbsp;<strong>Total Quantity</strong>&nbsp;of 250 is hidden.</p>
+    
+    <pre>B: ['450@7#iv15']
+    S: [<strong>'100(250)@9#iCbg'</strong>, '550@14#Ljup']</pre>
+    
+    <p>Now suppose a few more Limit Orders were added to the OB, such it currently looks like this:</p>
+    
+    <pre>B: ['450@7#iv15']
+    S: [<strong>'100(250)@9#iCbg'</strong>, '70@9#xtRA', '550@14#Ljup']</pre>
+    
+    <p>If a&nbsp;<strong>Buy</strong>&nbsp;Limit Order is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 100&nbsp;and a&nbsp;<strong>Price</strong>&nbsp;of 9, it will first be matched with order 'iCbg' for 100&nbsp;units of stock. Since the&nbsp;<strong>Quantity</strong>&nbsp;is fully exhausted, it will be replenished back to the&nbsp;<strong>Display Size</strong>&nbsp;(i.e. 100) and then re-inserted back into the OB. Take note that this newly created order is newer than the order 'xtRA', and hence, has lower priority.</p>
+    
+    <pre>B: ['450@7#iv15']
+    S: ['70@9#xtRA', '<strong>100(150)@9#iCbg',</strong> '550@14#Ljup']</pre>
+    
+    <p>If the&nbsp;<strong>Total Quantity</strong>&nbsp;is not enough to fully replenish to the&nbsp;<strong>Display</strong>&nbsp;<strong>Size</strong>, then the&nbsp;<strong>Quantity</strong>&nbsp;will be set to the&nbsp;<strong>Total Quantity</strong>.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>New Actions</h3>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Cancel/Replace Limit Order</h4>
+    
+    <p>Update the&nbsp;<strong>Quantity</strong>&nbsp;and/or&nbsp;<strong>Price</strong>&nbsp;of a Limit Order within the OB.</p>
+    
+    <p>The updated order will be treated as a newly-inserted order, which means it will be given lower priority compared to other existing orders of the same&nbsp;<strong>Price</strong>. The only exception to this rule is when the&nbsp;<strong>Price</strong>&nbsp;<strong>remains the same</strong>&nbsp;and the&nbsp;<strong>Quantity</strong>&nbsp;<strong>decreases</strong>&nbsp;(or also&nbsp;remains the same), in which case, the order's priority will remain the same.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@14#pQ34', '200@14#o3DS', '130@16#xb1X']</pre>
+    
+    <p>If order 'pQ34' has its&nbsp;<strong>Quantity</strong>&nbsp;updated from 290 to 190&nbsp;(and its&nbsp;<strong>Price</strong>&nbsp;remain the same), its priority will remain the same.</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', <strong>'190@14#pQ34'</strong>, '200@14#o3DS', '130@16#xb1X']</pre>
+    
+    <p>However, if the same order has its&nbsp;<strong>Quantity</strong>&nbsp;now updated from 190 to 500 (and its&nbsp;<strong>Price</strong>&nbsp;remain the same), it will be treated as a new order, causing it to have a lower priority than the order 'o3DS'.</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '200@14#o3DS', <strong>'500@14#pQ34'</strong>, '130@16#xb1X']
+    </pre>
+    
+    <p>You are guaranteed that an updated price will not cause any matches to occur. (For example, a request to update the price of&nbsp;order 'ey7r' to 15 will not occur, since that will match with order 'Ljup')</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Input Format</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>The input format of the new command&nbsp;is as follows:</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>SUB ICE [Side] [Order ID] [Quantity] [Price] [Display Size]</strong></p>
+    
+    <p>Submit an Iceberg Order with the specified Order ID, Quantity, Price and Display Size.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Note that commands that appear in previous parts (e.g.&nbsp;<strong>SUB LO</strong>) may appear in these test cases as well.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Recall that the&nbsp;<strong>Cancel/Replace Limit Order&nbsp;</strong>should only execute if the Order ID corresponds to a&nbsp;<strong>Limit Order</strong>&nbsp;in the OB. If the Order ID happens to correspond to an Iceberg Order in the OB, the action should do nothing.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Output Format</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>The output format is almost exactly the same as Parts 1. The only difference is the output format of an Iceberg Order; each Iceberg Order in the OB should be in&nbsp;the format&nbsp;<strong>'[Quantity]([Total Quantity])@[Price]#[Order ID]'.</strong></p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Sample Input 1 (IOC / FOK demonstration)</h3>
+    
+    <p>&nbsp;</p>
+    
+    <pre>SUB LO B N1Eh 300 12
+    SUB LO B 0Gxb 250 11
+    SUB LO S JSvU 350 14
+    SUB LO S uH6w 320 15
+    SUB IOC S ckMR 150 10
+    SUB IOC B DVeP 500 14
+    SUB FOK S ejnR 200 12
+    SUB FOK S 8uGs 200 9
+    SUB LO B 2va9 250 12
+    SUB LO B 9zS1 300 11
+    CRP 2va9 480 11
+    CRP 9zS1 170 11
+    END
+    </pre>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Sample Output 1</h3>
+    
+    <p>&nbsp;</p>
+    
+    <pre>0
+    0
+    0
+    0
+    1800
+    4900
+    0
+    2350
+    0
+    0
+    B: 200@11#0Gxb 170@11#9zS1 480@11#2va9
+    S: 320@15#uH6w
+    </pre>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Explanation 1</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>After the first 4 Limit Orders, the OB looks like this:</p>
+    
+    <pre>B: 300@12#N1Eh 250@11#0Gxb
+    S: 350@14#JSvU 320@15#uH6w</pre>
+    
+    <p>The 5th order, 'ckMR'&nbsp;(Sell IOC Order), matches&nbsp;with order 'N1Eh' for 150 units of stock at a price of 12 per unit. The total cost is 150 * 12&nbsp;= 1800; the IOC order is fully executed.</p>
+    
+    <p>The 6th order, 'DVeP'&nbsp;(Buy IOC&nbsp;Order), matches&nbsp;with order 'JSvU' for 350&nbsp;units of stock at a price of 14&nbsp;per unit. The total cost is 350 * 14 = 4900. The remaining 150 units of the order is cancelled.</p>
+    
+    <pre>B: 150@12#N1Eh 250@11#0Gxb
+    S: 320@15#uH6w
+    </pre>
+    
+    <p>For the 7th order, 'ejnR' (Sell FOK Order), attempting to execute it will only cause it to be matched for 150 units of stock (out of 200). Since it cannot be executed fully, it will not be executed.</p>
+    
+    <p>For the 8th order, '8uGs' (Sell FOK Order), it is able to fully execute by matching with 'N1Eh' for 150 units of stock and '0Gxb' for 50 units of stock. The total cost is 150 * 12 + 50 * 11 = 2350.</p>
+    
+    <p>The 9th and 10th Limit Orders will be added to the OB.</p>
+    
+    <pre>B: 250@12#2va9 200@11#0Gxb 300@11#9zS1
+    S: 320@15#uH6w</pre>
+    
+    <p>The 11th command will update order '2va9' from 250 to 480 for Quantity, and from 12 to 11 for Price. It will have the lowest priority among Buy orders with Price 11.</p>
+    
+    <pre>B: 200@11#0Gxb 300@11#9zS1 480@11#2va9
+    S: 320@15#uH6w</pre>
+    
+    <p>The 12th command will update order '9zS1' from 300 to 170 for Quantity. Since Price did not change and Quantity decreased, its priority will remain the same.</p>
+    
+    <pre>B: 200@11#0Gxb 170@11#9zS1 480@11#2va9
+    S: 320@15#uH6w</pre>
+    
+    <p>&nbsp;</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Sample Input 2 (ICE order demonstration)</h3>
+    
+    <p>&nbsp;</p>
+    
+    <pre>SUB ICE B Rcjr 350 12 100
+    SUB LO B 1FZU 70 12
+    SUB ICE B qfZL 420 12 100
+    SUB LO S NsSd 200 15
+    SUB ICE B SKJl 150 17 90
+    SUB LO S 5Rey 120 10
+    SUB LO S mYZz 500 10
+    END
+    </pre>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Sample Output 2</h3>
+    
+    <p>&nbsp;</p>
+    
+    <pre>0
+    0
+    0
+    0
+    2250
+    1440
+    6000
+    B: 50(170)@12#qfZL 50(50)@12#Rcjr
+    S: 50@15#NsSd
+    </pre>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Explanation 2</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>After the first 4 orders, the OB will look like this:</p>
+    
+    <pre>B: 100(350)@12#Rcjr 70@12#1FZU 100(420)@12#qfZL
+    S: 200@15#NsSd</pre>
+    
+    <p>The 5th order, 'SKJl' (Buy Iceberg Order), will be matched with order 'NsSd' for 150 units of stock. The total cost is 150 * 15 = 2250</p>
+    
+    <pre>B: 100(350)@12#Rcjr 70@12#1FZU 100(420)@12#qfZL
+    S: 50@15#NsSd
+    </pre>
+    
+    <p>The 6th order, '5Rey' (Sell Limit Order), will be matched with order 'Rcjr' for 100 units of stock. Order 'Rcjr' will have its quantity replenished to its Display Size (100) and re-inserted into the OB with minimum priority among all orders of Price 12.</p>
+    
+    <p>Then it will be matched with '1FZu' for 20 units of stock. The total cost is (100 * 12 + 20 * 12) = 1440.</p>
+    
+    <pre>B: 50@12#1FZU 100(420)@12#qfZL 100(250)@12#Rcjr
+    S: 50@15#NsSd</pre>
+    
+    <p>The 7th order, 'mYZz' (Sell Limit Order), will be matched with '1FZU' for 50 units of stock.</p>
+    
+    <p>Then it will be matched with 'qfZL' for 100 units of stock. Its quantity will be replenished to 100 and re-inserted with minimum priority.</p>
+    
+    <p>Then it will be matched with 'Rcjr' for 100 units of stock. Its quantity will be replenished to 100 and re-inserted with minimum priority.</p>
+    
+    <p>The above two&nbsp;steps will continue until the order 'mYZz' is fully executed.</p>
+    
+    <pre>B: 50(170)@12#qfZL 50(50)@12#Rcjr
+    S: 50@15#NsSd
+    </pre>
+    
+    <p>The total cost is (50 * 12 + 100 * 12 + 100 * 12 + 100 * 12 + 100 * 12 + 50 * 12) = 6000.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>====================================================================================</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><em>For your convenience, a copy of the problem statements of the entire task is included below. This will include the new order types and actions introduced in Part 2.</em></p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Introduction</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>An "<strong>Order&nbsp;Matching Engine</strong>", or simply "<strong>Matching Engine</strong>", is an electronic system that matches "<strong>Buy</strong>" and "<strong>Sell</strong>" orders for a stock market. A trader can submit several types of orders to a matching engine, which will process the submitted orders and possibly place them into an&nbsp;<strong>Order Book (OB)</strong>, which is an electronic list of buy and sell orders organised by price level.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Your task for this problem is to design and implement a Matching Engine which maintains an OB. This Matching Engine should&nbsp;support multiple different types of submitted orders, as well a few other possible actions that a Trader might want to perform.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Order Book (OB) Description</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>As mentioned in the introduction, the OB is a list of buy and sell orders. Specifically, it contains two lists: a&nbsp;<strong>list of Buy orders</strong>&nbsp;and a&nbsp;<strong>list of Sell orders</strong>, sorted in the order of decreasing priority (i.e. the order with the highest priority is at the front of the list).</p>
+    
+    <ul>
+        <li>For Buy orders, a Buy&nbsp;order with&nbsp;<strong>a higher Price</strong>&nbsp;has higher priority than one with a lower Price. If two Buy orders have the same Price, the order that arrived in the OB&nbsp;<strong>earlier</strong>&nbsp;will have higher priority.</li>
+        <li>For Sell orders, a Sell order with&nbsp;<strong>a lower Price</strong>&nbsp;has higher priority than one with a higher Price.&nbsp;If two Sell orders have the same Price, the order that arrived in the OB&nbsp;<strong>earlier</strong>&nbsp;will have higher priority.</li>
+    </ul>
+    
+    <p>Each order will have the following attributes:</p>
+    
+    <ul>
+        <li>
+    <strong>Side</strong>: Either 'B' or 'S', representing&nbsp;the 'Buy'&nbsp;and&nbsp;'Sell' sides respectively.</li>
+        <li>
+    <strong>Order ID (string)</strong>: A unique identifier consisting of exactly 4 alphanumeric characters. This ID is case-sensitive (i.e. "abcd" is different from "ABcd").</li>
+        <li>
+    <strong>Price (integer)</strong>: The best price at which&nbsp;the trader is willing to buy or sell a single unit of stock. For a Buy order, this represents the maximum price at which they are willing to buy.&nbsp;For a Sell order, this represents the minimum price at which they are willing to sell.</li>
+        <li>
+    <strong>Quantity (integer)</strong>: The number of units of stock&nbsp;that the trader is willing to buy or sell.</li>
+    </ul>
+    
+    <p><em>Note that certain Order Types may have additional attributes, or only a subset of these attributes&nbsp;- more details can be found in the&nbsp;<strong>Types of Orders</strong>&nbsp;section.</em></p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The orders within the OB are represented in the form&nbsp;<strong>'[Quantity]@[Price]#[Order ID]'</strong>. For example, a Buy order represented as '450@7#iv15' represents a Buy order with the Order ID 'iv15', where the trader is willing to buy 450 units of stock&nbsp;at a price of 7 per unit of stock.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The following is an example of an OB:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@12#bG0d', '250@12#Ljup']</pre>
+    
+    <p>Where&nbsp;<strong>B</strong>&nbsp;represents the list of Buy orders, and&nbsp;<strong>S</strong>&nbsp;represents the list of Sell orders, sorted in descending order of priority. In this example, order 'ey7r' is the Buy order with the highest priority.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Order Matching/Execution</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>When an order gets submitted to the OB, it will get executed (sometimes partially) if there is a&nbsp;<strong>match&nbsp;</strong>with an order in the opposing Side within the OB (That is, a submitted Buy order will be matched with the Sell orders within the OB, and vice versa). A match occurs between a Buy order and a Sell order if&nbsp;the&nbsp;<strong>Price of the&nbsp;Buy order is greater than, or equal to, the Price of the Sell order</strong>. The quantity matched (executed) is equal to the lower of the quantities of the two matched orders, and the price used for the trade will be the&nbsp;<strong>Price</strong>&nbsp;of the Order in&nbsp;the OB (and not the submitted order).</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The matching engine will repeatedly attempt to match the submitted order with the order of highest priority in the opposing side within the OB and execute trades upon successful matches.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Consider the following OB, where a Trader has just submitted a Buy order with ID 'QpoZ' for 500 units of stock at a price of 12 per unit of stock:</p>
+    
+    <pre>Submitted buy order:<strong> '500@12#QpoZ'
+    </strong>
+    B: ['300@9#ey7r', '450@7#iv15']
+    S: [<strong>'280@10#z14R'</strong>, '200@12#bG0d', '250@14#Ljup']
+    </pre>
+    
+    <p>A match occurs between Buy order 'QpoZ' (with Price 12) and Sell order 'z14R' (with Price 10), where the quantity matched is 280 (the lower of 500 and 280). Thus, a trade will occur between orders 'QpoZ' and 'z14R' for 280 units of stock at a price of 10 per unit of stock.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Since the Sell order 'z14R' is fully executed (i.e. its remaining quantity is reduced to zero), it will be removed from the OB. The Buy order 'QpoZ' still has a remaining quantity of 220. The OB now looks like this:</p>
+    
+    <pre>Submitted buy order: <strong>'220@12#QpoZ'</strong>
+    
+    B: ['300@9#ey7r', '450@7#iv15']
+    S: ['<strong>200@12#bG0d</strong>', '250@14#Ljup']</pre>
+    
+    <p>A match occurs between Buy order 'QpoZ' and Sell order 'bG0d', and so the same process will occur.&nbsp;The Sell order 'bG0d' is fully executed and will be removed from the OB. The Buy order 'QpoZ' has a remaining quantity of 20.</p>
+    
+    <pre>Submitted buy order: '20@12#QpoZ'
+    
+    B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup']</pre>
+    
+    <p>At this point, the Buy order 'QpoZ' cannot be matched with any remaining Sell order. It&nbsp;will be added to the OB with its remaining quantity.</p>
+    
+    <pre>B: ['20@12#QpoZ', '300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup']</pre>
+    
+    <p>A total of 480 units of stock was traded during the execution of this order, and the total cost is 280 * 10 + 200 * 12 = 5200.</p>
+    
+    <p><em>Note that this is procedure for the execution of a&nbsp;<strong>Limit Order</strong>; other Order types may be executed differently, as seen in the&nbsp;<strong>Types of Orders</strong>&nbsp;section.</em></p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Types of Orders</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>These are the possible Orders that a Trader can submit to the Matching Engine.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Limit Order</h4>
+    
+    <p>All of the Orders that have been discussed in previous sections are Limit Orders. A limit order consists of a&nbsp;<strong>Side</strong>&nbsp;(either 'B' or 'S', for the 'Buy' and 'Sell' sides respectively), a&nbsp;<strong>Quantity</strong>, and&nbsp;a&nbsp;<strong>Price.</strong></p>
+    
+    <p>Upon submitting a Limit Order, the Matching Engine will execute the submitted order as long as there is a match with the opposing Side within the OB.&nbsp;If the limit order is not executed fully, it will be added to the OB with its remaining quantity, as described in the&nbsp;<strong>Order Matching/Execution</strong>&nbsp;section.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Market Order</h4>
+    
+    <p>Unlike the Limit Order, a Market Order only consists of a&nbsp;<strong>Side</strong>&nbsp;and a&nbsp;<strong>Quantity</strong>; it&nbsp;<strong>does not have a Price</strong>.</p>
+    
+    <p>Upon submitting a Market Order, the Matching Engine will repeatedly match the submitted order with the order of highest priority in the opposing side within the OB, regardless of Price. If the market order is not executed fully, the remaining quantity will be cancelled.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If a&nbsp;<strong>Sell</strong>&nbsp;Market Order is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 400, it will be matched with order 'ey7r' for 300 units of stock, then with order 'iv15' for 100 units of stock. The OB now looks like this:</p>
+    
+    <pre>B: ['350@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If another&nbsp;<strong>Sell&nbsp;</strong>Market Order is submitted with a&nbsp;<strong>Quantity&nbsp;</strong>of 500, it will be matched with order 'iv15' for 350 units of stock.</p>
+    
+    <pre>B: []
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>Since there are no more Buy orders in the OB, no matches can be made. The remaining quantity of 150 in the Market Order will be cancelled.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Immediate-or-Cancel (IOC) Order</h4>
+    
+    <p>An IOC Order is similar to a Limit Order, except if the IOC Order is not executed fully, the remaining quantity will be cancelled, instead of being added to the OB. Like the Limit Order, an IOC Order consists of a&nbsp;<strong>Side</strong>, a&nbsp;<strong>Quantity</strong>&nbsp;and a&nbsp;<strong>Price</strong>.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If a&nbsp;<strong>Sell</strong>&nbsp;IOC Order is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 400 and a&nbsp;<strong>Price</strong>&nbsp;of 8, it will be matched with order 'ey7r' for 300 units of stock. The OB now looks like this:</p>
+    
+    <pre>B: ['450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']
+    </pre>
+    
+    <p>The IOC Order can no longer be matched with any Buy order. The remaining quantity of 100 is cancelled.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Fill-or-Kill (FOK) Order</h4>
+    
+    <p>An FOK Order is similar to a Limit Order, except the FOK Order will be executed&nbsp;<strong>if and only if it can be executed fully</strong>. If the FOK Order&nbsp;<strong>cannot</strong>&nbsp;be executed fully, it will&nbsp;<strong>not be executed at all&nbsp;</strong>- that is, the OB will&nbsp;<strong>remain exactly the same</strong>.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If a&nbsp;<strong>Sell</strong>&nbsp;FOK Order is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 200 and a&nbsp;<strong>Price</strong>&nbsp;of 8, it can be executed fully by being matched with order 'ey7r' for 200 units of stock. The OB now looks like this</p>
+    
+    <pre>B: ['100@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@16#pQ34']</pre>
+    
+    <p>If another&nbsp;<strong>Sell</strong>&nbsp;FOK Order is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 200 and a&nbsp;<strong>Price</strong>&nbsp;of 8, it can only be executed partially. Therefore, the entire FOK order is cancelled and the OB will remain exactly the same.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Iceberg Order</h4>
+    
+    <p>An Iceberg Order is similar to a Limit Order, except it has an additional attribute called the&nbsp;<strong>Display Size</strong>. When it gets inserted into the OB, its&nbsp;<strong>Quantity</strong>&nbsp;will be initially set to be equal to the&nbsp;<strong>Display Size</strong>&nbsp;while the&nbsp;<strong>Total Quantity</strong>&nbsp;is&nbsp;<strong>hidden</strong>. When the&nbsp;<strong>Quantity</strong>&nbsp;is fully exhausted (i.e. it goes to zero), it will be replenished and re-inserted into the OB.</p>
+    
+    <p>Upon submitting an Iceberg Order, it will initially behave in the exact same way as a Limit Order, in which it repeatedly matched until a match can no longer be made.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['550@14#Ljup']</pre>
+    
+    <p>If a&nbsp;<strong>Sell</strong>&nbsp;Iceberg Order (with Order ID 'iCbg') is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 550, a&nbsp;<strong>Price</strong>&nbsp;of 9, and a&nbsp;<strong>Display Size</strong>&nbsp;of 100, it will be matched with order 'ey7r' for 300 units of stock.</p>
+    
+    <pre>Sell Iceberg Order: '250@9#iCbg'
+    
+    B: ['450@7#iv15']
+    S: ['550@14#Ljup']</pre>
+    
+    <p>The iceberg order currently has a remaining quantity of 250. However, instead of being added to OB as a Sell Order with Quantity 250, it will be added as a Sell Order&nbsp;with Quantity equal to the&nbsp;<strong>Display Size&nbsp;</strong>(i.e. 100) while the&nbsp;<strong>Total Quantity</strong>&nbsp;of 250 is hidden.</p>
+    
+    <pre>B: ['450@7#iv15']
+    S: [<strong>'100(250)@9#iCbg'</strong>, '550@14#Ljup']</pre>
+    
+    <p>Now suppose a few more Limit Orders were added to the OB, such it currently looks like this:</p>
+    
+    <pre>B: ['450@7#iv15']
+    S: [<strong>'100(250)@9#iCbg'</strong>, '70@9#xtRA', '550@14#Ljup']</pre>
+    
+    <p>If a&nbsp;<strong>Buy</strong>&nbsp;Limit Order is submitted with a&nbsp;<strong>Quantity</strong>&nbsp;of 100&nbsp;and a&nbsp;<strong>Price</strong>&nbsp;of 9, it will first be matched with order 'iCbg' for 100&nbsp;units of stock. Since the&nbsp;<strong>Quantity</strong>&nbsp;is fully exhausted, it will be replenished back to the&nbsp;<strong>Display Size</strong>&nbsp;(i.e. 100) and then re-inserted back into the OB. Take note that this newly created order is newer than the order 'xtRA', and hence, has lower priority.</p>
+    
+    <pre>B: ['450@7#iv15']
+    S: ['70@9#xtRA', '<strong>100(150)@9#iCbg',</strong> '550@14#Ljup']</pre>
+    
+    <p>If the&nbsp;<strong>Total Quantity</strong>&nbsp;is not enough to fully replenish to the&nbsp;<strong>Display</strong>&nbsp;<strong>Size</strong>, then the&nbsp;<strong>Quantity</strong>&nbsp;will be set to the&nbsp;<strong>Total Quantity</strong>.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Other Actions</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>Aside from submitting orders, there are other&nbsp;actions that a Trader can perform.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Cancel Order</h4>
+    
+    <p>Cancel an Order, hence removing it from the OB.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h4>Cancel/Replace Limit Order</h4>
+    
+    <p>Update the&nbsp;<strong>Quantity</strong>&nbsp;and/or&nbsp;<strong>Price</strong>&nbsp;of a Limit Order within the OB.</p>
+    
+    <p>The updated order will be treated as a newly-inserted order, which means it will be given lower priority compared to other existing orders of the same&nbsp;<strong>Price</strong>. The only exception to this rule is when the&nbsp;<strong>Price</strong>&nbsp;<strong>remains the same</strong>&nbsp;and the&nbsp;<strong>Quantity</strong>&nbsp;<strong>decreases</strong>&nbsp;(or also&nbsp;remains the same), in which case, the order's priority will remain the same.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>For example, suppose the OB currently looks like this:</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '290@14#pQ34', '200@14#o3DS', '130@16#xb1X']</pre>
+    
+    <p>If order 'pQ34' has its&nbsp;<strong>Quantity</strong>&nbsp;updated from 290 to 190&nbsp;(and its&nbsp;<strong>Price</strong>&nbsp;remain the same), its priority will remain the same.</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', <strong>'190@14#pQ34'</strong>, '200@14#o3DS', '130@16#xb1X']</pre>
+    
+    <p>However, if the same order has its&nbsp;<strong>Quantity</strong>&nbsp;now updated from 190 to 500 (and its&nbsp;<strong>Price</strong>&nbsp;remain the same), it will be treated as a new order, causing it to have a lower priority than the order 'o3DS'.</p>
+    
+    <pre>B: ['300@9#ey7r', '450@7#iv15']
+    S: ['250@14#Ljup', '200@14#o3DS', <strong>'500@14#pQ34'</strong>, '130@16#xb1X']
+    </pre>
+    
+    <p>You are guaranteed that an updated price will not cause any matches to occur. (For example, a request to update the price of&nbsp;order 'ey7r' to 15 will not occur, since that will match with order 'Ljup')</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Grading Criteria</h3>
+    
+    <p><br>
+    Your solution will be manually reviewed and evaluated based on&nbsp;<strong>correctness</strong>,&nbsp;<strong>design</strong>&nbsp;and&nbsp;<strong>efficiency</strong>.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Input Format</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>You may assume that the OB initially starts out empty.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The input consists of a sequence of commands - one command&nbsp;per line of input. Each line of input will be one of the following:</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>SUB LO [Side] [Order ID] [Quantity] [Price]</strong></p>
+    
+    <p>Submit a Limit Order with the specified Order ID, Quantity and Price.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>SUB MO [Side] [Order ID] [Quantity]</strong></p>
+    
+    <p>Submit a Market Order with the specified Order ID and Quantity.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>SUB IOC [Side] [Order ID] [Quantity] [Price]</strong></p>
+    
+    <p>Submit an Immediate-Or-Cancel (IOC) Order with the specified Order ID, Quantity and Price.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>SUB FOK [Side] [Order ID] [Quantity] [Price]</strong></p>
+    
+    <p>Submit a Fill-Or-Kill (FOK) Order with the specified Order ID, Quantity and Price.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>SUB ICE [Side] [Order ID] [Quantity] [Price] [Display Size]</strong></p>
+    
+    <p>Submit an Iceberg Order with the specified Order ID, Quantity, Price and Display Size.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>CXL [Order ID]</strong></p>
+    
+    <p>Cancel the order in the OB with the specified Order ID. If there is no order in the OB with the specified Order ID, this action should do nothing.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p><strong>CRP [Order ID] [New Quantity] [New Price]</strong></p>
+    
+    <p>Update the Quantity and Price of the Limit Order with the specified Order ID. If the specified Order ID does not correspond to a&nbsp;<strong>Limit Order</strong>&nbsp;in the OB, this action should do nothing.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>The input will terminate with a single line,&nbsp;<strong>END</strong>, representing the end of the sequence of actions.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Output Format</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>For each action that represents a submitted order (i.e. any action beginning with 'SUB'), output a single integer: the total cost of the units of stock that was traded during the execution of the order. If no stocks were traded during the execution, output 0.</p>
+    
+    <p>&nbsp;</p>
+    
+    <p>Finally, at the end of the sequence of actions, print out the entire OB in two lines. The first line should be the list of Buy Orders in the OB; the second line should be the list of Sell Orders in the OB. The list of Buy orders should start with the string&nbsp;<strong>'B: '</strong>&nbsp;(without the quotes), followed by the orders in decreasing priority, separated by spaces. The list of sell orders should be printed in the same way, but beginning with&nbsp;<strong>'S: '</strong>&nbsp;instead of 'B: '. Each order should be printed in the format&nbsp;<strong>'[Quantity]@[Price]#[Order ID]'</strong>, except for Iceberg orders, which follows the format&nbsp;<strong>'[Quantity]([Total Quantity])@[Price]#[Order ID]'.</strong></p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Sample Input</h3>
+    
+    <p>&nbsp;</p>
+    
+    <pre>SUB LO B Ffuj 200 13
+    SUB LO B Yy7P 150 11
+    SUB LO B YuFU 100 13
+    SUB LO S IpD8 150 14
+    SUB LO S y93N 190 15
+    SUB LO B Y5wb 230 14
+    SUB MO B IZLO 250
+    CXL Ffuj
+    CXL 49Ze
+    END
+    </pre>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Sample Output</h3>
+    
+    <p>&nbsp;</p>
+    
+    <pre>0
+    0
+    0
+    0
+    0
+    2100
+    2850
+    B: 80@14#Y5wb 100@13#YuFU 150@11#Yy7P
+    S:
+    </pre>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Explanation</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>The first 5 orders are Limit Orders that do not get executed; they simply get added to the Order Book, which now looks like this:</p>
+    
+    <pre>B: 200@13#Ffuj 100@13#YuFU 150@11#Yy7P
+    S: 150@14#IpD8 190@15#y93N</pre>
+    
+    <p>The 6th order, 'Y5wb'&nbsp;(Buy Limit Order), matches&nbsp;with order 'IpD8' for 150 units of stock at a price of 14 per unit. The total cost is 150 * 14 = 2100. The remaining 80 units is added to the list of Buy orders.</p>
+    
+    <p>The 7th order, 'IZLO'&nbsp;(Buy&nbsp;Market Order), matches&nbsp;with order 'y93N' for 190 units of stock at a price of 15 per unit. The total cost is 190 * 15 = 2850. The remaining 60 units is cancelled.</p>
+    
+    <pre>B: 80@14#Y5wb 200@13#Ffuj 100@13#YuFU 150@11#Yy7P
+    S:</pre>
+    
+    <p>The 8th command cancels order "Ffuj".</p>
+    
+    <p>The 9th command attempts to cancel order "49Ze", but no such order exists in the OB. Therefore, nothing will happen.</p>
+    
+    <p>&nbsp;</p>
+    
+    <h3>Constraints</h3>
+    
+    <p>&nbsp;</p>
+    
+    <p>Each test case contains at most 100 commands.</p>
+    
+    <p>All numerical values (i.e.&nbsp;<strong>Quantities</strong>,&nbsp;<strong>Prices&nbsp;</strong>and<strong>&nbsp;Display Size</strong>) are positive integers. You are guaranteed that any integer that appear in the input, as well as any integer value to be printed in the output, will fit in a signed 32-bit integer.</p>
+    </div></div>
+    
+    

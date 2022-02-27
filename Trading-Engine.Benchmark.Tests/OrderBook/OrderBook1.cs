@@ -2,7 +2,7 @@
 
 namespace Trading_Engine.Benchmark.Tests.OrderBook
 {
-    public class OrderBook1 : IOrderBook
+    public class OrderBook1 : IOrderBookTest
     {
         private List<Order> _buyOrders;
         private List<Order> _sellOrders;
@@ -70,6 +70,16 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
             }
 
             return foundOrder;
+        }
+
+        public void InidializeBuyOrders(List<Order> orders)
+        {
+            _buyOrders = new List<Order>(orders);
+        }
+
+        public void InidializeSellOrders(List<Order> orders)
+        {
+            _sellOrders = new List<Order>(orders);
         }
     }
 }

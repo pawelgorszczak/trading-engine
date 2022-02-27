@@ -1,6 +1,8 @@
-﻿namespace Trading_Engine.Domain
+﻿using Trading_Engine.Domain;
+
+namespace Trading_Engine.Benchmark.Tests.OrderBook
 {
-    public class OrderBook2
+    public class OrderBook1
     {
         private List<Order> _buyOrders;
         private List<Order> _sellOrders;
@@ -9,7 +11,7 @@
 
         public IReadOnlyList<Order> SellOrders => _sellOrders.AsReadOnly();
 
-        public OrderBook2()
+        public OrderBook1()
         {
             _buyOrders = new List<Order>();
             _sellOrders = new List<Order>();
@@ -30,22 +32,9 @@
 
         }
 
+        private void SortSellOrders() => _sellOrders = _sellOrders.OrderBy(o => o.Price).ThenBy(o => o.CreateTime).ToList();
 
-        //private void SortSellOrders() => _sellOrders = _sellOrders.OrderBy(o => o.Price).ThenBy(o => o.CreateTime).ToList();
-
-        //private void SortBuyOrders() => _buyOrders = _buyOrders.OrderByDescending(o => o.Price).ThenBy(o => o.CreateTime).ToList();
-
-        private void SortSellOrders()
-        {
-            Comparison<Order> comparer = (x, y) => { return x.Price - y.Price + x.CreateTime.Millisecond - y.CreateTime.Millisecond; };
-            _sellOrders.Sort(comparer);
-        }
-
-        private void SortBuyOrders()
-        {
-            Comparison<Order> comparer = (x, y) => { return y.Price - x.Price + x.CreateTime.Millisecond - y.CreateTime.Millisecond; };
-            _buyOrders.Sort(comparer);
-        }
+        private void SortBuyOrders() => _buyOrders = _buyOrders.OrderByDescending(o => o.Price).ThenBy(o => o.CreateTime).ToList();
 
         public void RemoveOrder(string commandOrderId)
         {

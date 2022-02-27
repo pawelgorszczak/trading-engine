@@ -1,4 +1,6 @@
-﻿namespace Trading_Engine.Domain
+﻿using Trading_Engine.Domain;
+
+namespace Trading_Engine.Benchmark.Tests.OrderBook
 {
     public class OrderBook3
     {
@@ -34,7 +36,7 @@
             LinkedListNode<Order> current = _buyOrders.First;
             while (current != null && !placementFound)
             {
-                if (order.Price > current.Value.Price || (order.Price == current.Value.Price && order.CreateTime < current.Value.CreateTime))
+                if (order.Price > current.Value.Price || order.Price == current.Value.Price && order.CreateTime < current.Value.CreateTime)
                 {
                     _buyOrders.AddBefore(current, order);
                     placementFound = true;
@@ -47,17 +49,17 @@
 
             if (current == null && !placementFound)
             {
-                this._buyOrders.AddLast(order);
+                _buyOrders.AddLast(order);
             }
         }
-                
+
         public void AddSellOrder(Order order)
         {
             var placementFound = false;
             LinkedListNode<Order> current = _sellOrders.First;
             while (current != null && !placementFound)
             {
-                if (order.Price < current.Value.Price || (order.Price == current.Value.Price && order.CreateTime < current.Value.CreateTime))
+                if (order.Price < current.Value.Price || order.Price == current.Value.Price && order.CreateTime < current.Value.CreateTime)
                 {
                     _sellOrders.AddBefore(current, order);
                     placementFound = true;
@@ -70,7 +72,7 @@
 
             if (current == null && !placementFound)
             {
-                this._sellOrders.AddLast(order);
+                _sellOrders.AddLast(order);
             }
         }
 

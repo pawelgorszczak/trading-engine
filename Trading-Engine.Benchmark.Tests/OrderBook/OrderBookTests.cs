@@ -1,14 +1,14 @@
 ﻿using BenchmarkDotNet.Attributes;
 using Trading_Engine.Domain;
 
-namespace Trading_Engine.Benchmark.Tests
+namespace Trading_Engine.Benchmark.Tests.OrderBook
 {
     //https://arthurminduca.com/2016/04/25/choosing-the-right-collection/
     [SimpleJob(launchCount: 1, warmupCount: 2, targetCount: 5)]
     [MinColumn, MaxColumn, MeanColumn, MedianColumn]
     public class OrderBookTests
     {
-        private OrderBook orderBook = new OrderBook();
+        private OrderBook1 orderBook = new OrderBook1();
         private OrderBook2 orderBook2 = new OrderBook2();
         private OrderBook3 orderBook3 = new OrderBook3();
 

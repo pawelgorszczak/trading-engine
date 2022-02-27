@@ -76,10 +76,6 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
             }
         }
 
-        //private void SortSellOrders() => _sellOrders = _sellOrders.OrderBy(o => o.Price).ThenBy(o => o.CreateTime).ToList();
-
-        //private void SortBuyOrders() => _buyOrders = _buyOrders.OrderByDescending(o => o.Price).ThenBy(o => o.CreateTime).ToList();
-
         public void RemoveOrder(string commandOrderId)
         {
             if (!TryRemoveFromList(commandOrderId, _buyOrders))

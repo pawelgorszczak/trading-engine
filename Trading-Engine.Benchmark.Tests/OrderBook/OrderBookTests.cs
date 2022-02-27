@@ -44,6 +44,24 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
             AddBuyOrderComplexScenrio(new OrderBook3());
         }
 
+        [Benchmark]
+        public void AddBuyOrdersIntoBigList()
+        {
+            AddBuyOrdersIntoBigList(new OrderBook1());
+        }
+
+        [Benchmark]
+        public void AddBuyOrders2IntoBigList()
+        {
+            AddBuyOrdersIntoBigList(new OrderBook2());
+        }
+
+        [Benchmark]
+        public void AddBuyOrders3IntoBigList()
+        {
+            AddBuyOrdersIntoBigList(new OrderBook3());
+        }
+
         /*
             |              Method |     Mean |    Error |   StdDev |      Min |      Max |   Median |
             |-------------------- |---------:|---------:|---------:|---------:|---------:|---------:|
@@ -93,6 +111,38 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
             orderBook.AddOrder(new Order("YuFU", 14, 40), SideType.Buy);
             orderBook.AddOrder(new Order("YuFU", 50, 30), SideType.Buy);
             orderBook.AddOrder(new Order("YuFU", 45, 20), SideType.Buy);
+        }
+
+        /*
+             |                   Method |       Mean |    Error |   StdDev |        Min |        Max |     Median |
+             |------------------------- |-----------:|---------:|---------:|-----------:|-----------:|-----------:|
+             |  AddBuyOrdersIntoBigList |   946.0 ms | 57.52 ms | 14.94 ms |   927.3 ms |   961.5 ms |   948.5 ms |
+             | AddBuyOrders2IntoBigList | 1,715.9 ms | 54.87 ms | 14.25 ms | 1,698.4 ms | 1,735.3 ms | 1,719.3 ms |
+             | AddBuyOrders3IntoBigList |   348.6 ms | 37.31 ms |  5.77 ms |   341.2 ms |   355.2 ms |   349.1 ms |
+         */
+        private void AddBuyOrdersIntoBigList(IOrderBookTest orderBook)
+        {
+            var buyOrderList = new List<Order>();
+            var price = 0;
+            for (int i = 0; i < 1000000; i++)
+            {
+                price += 2;
+                buyOrderList.Add(new Order("YuFU", price, 20));                
+            }
+            buyOrderList.Reverse();
+            orderBook.InidializeBuyOrders(buyOrderList);
+
+            // add at beginning
+            orderBook.AddOrder(new Order("YuFU", price + 2, 20), SideType.Buy);
+
+            // add at the end
+            orderBook.AddOrder(new Order("YuFU", 1, 20), SideType.Buy);
+
+            // add in the middle
+            orderBook.AddOrder(new Order("YuFU", (price/2) + 1, 20), SideType.Buy);
+
+            // add duplicate in the middle
+            orderBook.AddOrder(new Order("YuFU", price / 2, 20), SideType.Buy);
         }
     }
 }

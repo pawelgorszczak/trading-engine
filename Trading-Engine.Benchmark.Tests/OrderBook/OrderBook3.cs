@@ -2,7 +2,7 @@
 
 namespace Trading_Engine.Benchmark.Tests.OrderBook
 {
-    public class OrderBook3
+    public class OrderBook3 : IOrderBook
     {
         private LinkedList<Order> _buyOrders;
         private LinkedList<Order> _sellOrders;

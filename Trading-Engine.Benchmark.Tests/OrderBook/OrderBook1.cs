@@ -81,5 +81,10 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
         {
             _sellOrders = new List<Order>(orders);
         }
+
+        public override string? ToString()
+        {
+            return "OrderBook1";
+        }
     }
 }

@@ -11,7 +11,7 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
         [Benchmark]
         public void AddBuyAndSellOrder1()
         {
-            AddBuyAndSellOrderSimpleScenario(new OrderBook1());
+            AddBuyAndSellOrderSimpleScenario(new OrderBook2());
         }
 
         [Benchmark]
@@ -29,7 +29,7 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
         [Benchmark]
         public void AddBuyOrderComplexOrder1()
         {
-            AddBuyOrderComplexScenrio(new OrderBook1());
+            AddBuyOrderComplexScenrio(new OrderBook2());
         }
 
         [Benchmark]
@@ -47,7 +47,7 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
         [Benchmark]
         public void AddBuyOrdersIntoBigList()
         {
-            AddBuyOrdersIntoBigList(new OrderBook1());
+            AddBuyOrdersIntoBigList(new OrderBook2());
         }
 
         [Benchmark]

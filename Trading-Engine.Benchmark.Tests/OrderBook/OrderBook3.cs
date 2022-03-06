@@ -7,6 +7,9 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
         private LinkedList<Order> _buyOrders;
         private LinkedList<Order> _sellOrders;
 
+        private Dictionary<string, LinkedListNode<Order>> _buyOrdersLookUp;
+        private Dictionary<string, LinkedListNode<Order>> _sellOrdersLookUp;
+
         public IReadOnlyList<Order> BuyOrders => _buyOrders.ToList().AsReadOnly();
 
         public IReadOnlyList<Order> SellOrders => _sellOrders.ToList().AsReadOnly();
@@ -34,11 +37,12 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
         {
             var placementFound = false;
             LinkedListNode<Order> current = _buyOrders.First;
+            LinkedListNode<Order>? addedElement = null;
             while (current != null && !placementFound)
             {
                 if (order.Price > current.Value.Price || order.Price == current.Value.Price && order.CreateTime < current.Value.CreateTime)
                 {
-                    _buyOrders.AddBefore(current, order);
+                    addedElement = _buyOrders.AddBefore(current, order);
                     placementFound = true;
                 }
                 else
@@ -49,19 +53,22 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
 
             if (current == null && !placementFound)
             {
-                _buyOrders.AddLast(order);
+                addedElement = _buyOrders.AddLast(order);
             }
+
+            _buyOrdersLookUp.Add(addedElement.Value.OrderId, addedElement);
         }
 
         public void AddSellOrder(Order order)
         {
             var placementFound = false;
             LinkedListNode<Order> current = _sellOrders.First;
+            LinkedListNode<Order>? addedElement = null;
             while (current != null && !placementFound)
             {
                 if (order.Price < current.Value.Price || order.Price == current.Value.Price && order.CreateTime < current.Value.CreateTime)
                 {
-                    _sellOrders.AddBefore(current, order);
+                    addedElement = _sellOrders.AddBefore(current, order);
                     placementFound = true;
                 }
                 else
@@ -72,24 +79,27 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
 
             if (current == null && !placementFound)
             {
-                _sellOrders.AddLast(order);
+                addedElement = _sellOrders.AddLast(order);
             }
+
+            _buyOrdersLookUp.Add(addedElement.Value.OrderId, addedElement);
         }
 
         public void RemoveOrder(string commandOrderId)
         {
-            if (!TryRemoveFromList(commandOrderId, _buyOrders))
+            if (!TryRemoveFromList(commandOrderId,_buyOrdersLookUp, _buyOrders))
             {
-                TryRemoveFromList(commandOrderId, _sellOrders);
+                TryRemoveFromList(commandOrderId, _sellOrdersLookUp, _sellOrders);
             }
         }
 
-        public static bool TryRemoveFromList(string commandOrderId, LinkedList<Order> orders)
+        public static bool TryRemoveFromList(string commandOrderId, Dictionary<string, LinkedListNode<Order>> lookupTable, LinkedList<Order> orders)
         {
-            var foundOrder = orders.FirstOrDefault(order => order.OrderId == commandOrderId);
+            var foundOrder = lookupTable.GetValueOrDefault(commandOrderId);
             if (foundOrder != null)
             {
                 orders.Remove(foundOrder);
+                lookupTable.Remove(commandOrderId);
                 if (foundOrder is IceBeargOrder)
                 {
                     //var resubmition = new IceBeargOrder(foundOrder.OrderId, foundOrder.Price, );
@@ -115,11 +125,13 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
         public void InidializeBuyOrders(List<Order> orders)
         {
             _buyOrders = new LinkedList<Order>(orders);
+            _buyOrdersLookUp = new Dictionary<string, LinkedListNode<Order>>();
         }
 
         public void InidializeSellOrders(List<Order> orders)
         {
             _sellOrders = new LinkedList<Order>(orders);
+            _sellOrdersLookUp = new Dictionary<string, LinkedListNode<Order>>();
         }
 
         public override string? ToString()

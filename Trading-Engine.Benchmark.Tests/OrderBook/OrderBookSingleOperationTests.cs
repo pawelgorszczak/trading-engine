@@ -5,44 +5,52 @@ using Trading_Engine.Domain;
 namespace Trading_Engine.Benchmark.Tests.OrderBook
 {
     /*
-        |                         Method |               Categories | OrderBookParam |           Mean |         Error |       StdDev |         Median |            Min |           Max |
-        |------------------------------- |------------------------- |--------------- |---------------:|--------------:|-------------:|---------------:|---------------:|--------------:|
-        |        AddOrder_AtTheBeginning |        AddInTheBeginning |     OrderBook1 | 232,964.070 us |  5,701.451 us | 3,771.157 us | 232,837.550 us | 227,733.200 us | 240,464.90 us |
-        |        AddOrder_AtTheBeginning |        AddInTheBeginning |     OrderBook2 | 523,625.210 us |  7,359.188 us | 4,867.647 us | 523,487.800 us | 515,879.400 us | 532,615.60 us |
-        |        AddOrder_AtTheBeginning |        AddInTheBeginning |     OrderBook3 |      17.550 us |      7.380 us |     4.881 us |      20.100 us |      11.200 us |      22.50 us |
-        |                                |                          |                |                |               |              |                |                |               |
-        |              AddOrder_AtTheEnd |              AddInTheEnd |     OrderBook1 | 148,720.350 us |  3,476.691 us | 2,299.616 us | 147,605.050 us | 146,514.100 us | 152,907.70 us |
-        |              AddOrder_AtTheEnd |              AddInTheEnd |     OrderBook2 | 281,105.088 us |    773.428 us |   404.518 us | 281,158.100 us | 280,288.100 us | 281,715.30 us |
-        |              AddOrder_AtTheEnd |              AddInTheEnd |     OrderBook3 |  10,552.000 us |    886.163 us |   527.341 us |  10,373.300 us |   9,917.400 us |  11,581.70 us |
-        |                                |                          |                |                |               |              |                |                |               |
-        |           AddOrder_InTheMiddle |           AddInTheMiddle |     OrderBook1 | 245,295.763 us |  6,015.827 us | 3,146.394 us | 247,154.650 us | 239,745.800 us | 247,723.10 us |
-        |           AddOrder_InTheMiddle |           AddInTheMiddle |     OrderBook2 | 536,544.260 us |  5,747.917 us | 3,801.891 us | 535,990.500 us | 528,973.800 us | 543,229.10 us |
-        |           AddOrder_InTheMiddle |           AddInTheMiddle |     OrderBook3 |      18.140 us |     10.081 us |     6.668 us |      19.450 us |      10.200 us |      30.70 us |
-        |                                |                          |                |                |               |              |                |                |               |
-        | AddOrder_InTheMiddleDuplicated | AddInTheMiddleDuplicated |     OrderBook1 | 242,817.740 us |  2,878.428 us | 1,903.902 us | 242,883.950 us | 240,581.200 us | 246,635.80 us |
-        | AddOrder_InTheMiddleDuplicated | AddInTheMiddleDuplicated |     OrderBook2 | 529,105.787 us | 14,685.427 us | 7,680.762 us | 526,781.900 us | 520,752.650 us | 543,497.75 us |
-        | AddOrder_InTheMiddleDuplicated | AddInTheMiddleDuplicated |     OrderBook3 |      17.289 us |      8.347 us |     4.967 us |      20.400 us |      10.400 us |      21.10 us |
-        |                                |                          |                |                |               |              |                |                |               |
-        |     RemoveOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook1 |     892.094 us |     10.060 us |     5.986 us |     894.450 us |     878.850 us |     898.25 us |
-        | RemoveSellOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook1 |  17,137.840 us |  2,785.951 us | 1,842.734 us |  16,259.550 us |  15,618.200 us |  20,781.80 us |
-        |     RemoveOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook2 |     981.740 us |    146.246 us |    96.732 us |     961.100 us |     871.750 us |   1,123.85 us |
-        | RemoveSellOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook2 |  16,138.975 us |    934.966 us |   489.005 us |  16,081.650 us |  15,510.100 us |  17,057.40 us |
-        |     RemoveOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook3 |      12.320 us |      7.765 us |     5.136 us |      12.600 us |       6.500 us |      18.10 us |
-        | RemoveSellOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook3 |       7.880 us |      7.831 us |     5.180 us |       7.850 us |       2.800 us |      13.70 us |
-        |                                |                          |                |                |               |              |                |                |               |
-        |           RemoveOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook1 |  26,646.778 us |    668.081 us |   397.564 us |  26,630.900 us |  26,177.900 us |  27,322.60 us |
-        |       RemoveSellOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook1 |  42,693.180 us |  1,028.917 us |   680.565 us |  42,531.550 us |  41,940.400 us |  44,015.50 us |
-        |           RemoveOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook2 |  28,087.111 us |  2,324.168 us | 1,383.075 us |  27,678.700 us |  26,611.400 us |  30,253.90 us |
-        |       RemoveSellOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook2 |  46,166.275 us |  7,690.639 us | 4,022.353 us |  44,103.100 us |  42,695.500 us |  53,545.10 us |
-        |           RemoveOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook3 |       8.170 us |      7.892 us |     5.220 us |       8.300 us |       2.750 us |      13.35 us |
-        |       RemoveSellOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook3 |      13.020 us |      7.239 us |     4.788 us |      16.300 us |       7.150 us |      17.25 us |
-        |                                |                          |                |                |               |              |                |                |               |
-        |        RemoveOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook1 |  17,320.240 us |  3,614.747 us | 2,390.931 us |  16,718.900 us |  15,225.600 us |  22,209.70 us |
-        |    RemoveSellOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook1 |  30,426.220 us |  1,094.436 us |   723.901 us |  30,427.050 us |  29,659.850 us |  31,646.65 us |
-        |        RemoveOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook2 |  15,344.312 us |    280.548 us |   146.732 us |  15,283.650 us |  15,258.650 us |  15,686.45 us |
-        |    RemoveSellOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook2 |  37,665.900 us | 10,030.131 us | 6,634.310 us |  37,386.200 us |  28,808.400 us |  48,103.00 us |
-        |        RemoveOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook3 |      14.150 us |      7.513 us |     4.471 us |      16.250 us |       6.250 us |      17.75 us |
-        |    RemoveSellOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook3 |      13.790 us |      8.885 us |     5.877 us |      13.750 us |       6.500 us |      25.90 us |
+        |                         Method |               Categories | OrderBookParam |           Mean |          Error |         StdDev |         Median |            Min |            Max |
+        |------------------------------- |------------------------- |--------------- |---------------:|---------------:|---------------:|---------------:|---------------:|---------------:|
+        |        AddOrder_AtTheBeginning |        AddInTheBeginning |     OrderBook1 | 245,234.160 us |  7,819.4040 us |  5,172.0516 us | 243,226.950 us | 240,235.700 us | 256,763.500 us |
+        |        AddOrder_AtTheBeginning |        AddInTheBeginning |     OrderBook2 | 516,654.980 us |  2,909.8379 us |  1,924.6776 us | 516,539.950 us | 514,020.800 us | 520,186.400 us |
+        |        AddOrder_AtTheBeginning |        AddInTheBeginning |     OrderBook3 |      14.750 us |     10.4262 us |      6.8963 us |      11.000 us |       9.800 us |      27.500 us |
+        |                                |                          |                |                |                |                |                |                |                |
+        |              AddOrder_AtTheEnd |              AddInTheEnd |     OrderBook1 | 162,152.050 us | 13,325.0776 us |  8,813.7138 us | 159,789.250 us | 152,789.750 us | 179,338.050 us |
+        |              AddOrder_AtTheEnd |              AddInTheEnd |     OrderBook2 | 267,488.410 us |  2,015.1410 us |  1,332.8910 us | 267,290.650 us | 265,640.300 us | 270,163.900 us |
+        |              AddOrder_AtTheEnd |              AddInTheEnd |     OrderBook3 |   9,959.710 us |    266.2954 us |    176.1379 us |   9,933.050 us |   9,672.650 us |  10,231.450 us |
+        |                                |                          |                |                |                |                |                |                |                |
+        |           AddOrder_InTheMiddle |           AddInTheMiddle |     OrderBook1 | 242,672.580 us |  5,612.7712 us |  3,712.5006 us | 242,636.650 us | 238,365.800 us | 250,245.500 us |
+        |           AddOrder_InTheMiddle |           AddInTheMiddle |     OrderBook2 | 557,304.794 us | 41,778.9873 us | 24,862.0052 us | 556,528.650 us | 530,626.450 us | 609,284.450 us |
+        |           AddOrder_InTheMiddle |           AddInTheMiddle |     OrderBook3 |      10.463 us |      1.2003 us |      0.6278 us |      10.550 us |       9.400 us |      11.400 us |
+        |                                |                          |                |                |                |                |                |                |                |
+        | AddOrder_InTheMiddleDuplicated | AddInTheMiddleDuplicated |     OrderBook1 | 243,091.240 us |  5,035.2444 us |  3,330.5024 us | 243,159.950 us | 239,126.400 us | 246,605.200 us |
+        | AddOrder_InTheMiddleDuplicated | AddInTheMiddleDuplicated |     OrderBook2 | 555,619.260 us | 19,457.1414 us | 12,869.6943 us | 553,921.150 us | 536,236.050 us | 577,760.550 us |
+        | AddOrder_InTheMiddleDuplicated | AddInTheMiddleDuplicated |     OrderBook3 |      10.606 us |      0.9766 us |      0.5812 us |      10.750 us |       9.550 us |      11.450 us |
+        |                                |                          |                |                |                |                |                |                |                |
+        |     RemoveOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook1 |     882.070 us |     32.2137 us |     21.3074 us |     888.350 us |     842.800 us |     907.900 us |
+        | RemoveSellOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook1 |  17,463.200 us |  2,586.4484 us |  1,539.1539 us |  16,816.100 us |  15,775.800 us |  20,208.000 us |
+        |     RemoveOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook2 |     883.130 us |     43.6575 us |     28.8767 us |     880.400 us |     820.450 us |     926.950 us |
+        | RemoveSellOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook2 |  15,545.400 us |    243.9011 us |    127.5650 us |  15,547.200 us |  15,294.000 us |  15,678.500 us |
+        |     RemoveOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook3 |       6.922 us |      1.1696 us |      0.6960 us |       6.800 us |       6.300 us |       8.500 us |
+        | RemoveSellOrder_AtTheBeginning |     RemoveInTheBeginning |     OrderBook3 |       2.910 us |      0.5766 us |      0.3814 us |       2.900 us |       2.400 us |       3.500 us |
+        |                                |                          |                |                |                |                |                |                |                |
+        |           RemoveOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook1 |  26,219.494 us |    734.1472 us |    436.8792 us |  26,068.350 us |  25,734.950 us |  27,019.450 us |
+        |       RemoveSellOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook1 |  42,043.275 us |  3,823.7950 us |  1,999.9187 us |  41,472.000 us |  40,299.100 us |  46,785.800 us |
+        |           RemoveOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook2 |  25,966.044 us |    894.9296 us |    532.5582 us |  25,934.600 us |  25,326.800 us |  26,676.300 us |
+        |       RemoveSellOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook2 |  41,682.644 us |  1,429.6696 us |    850.7734 us |  41,355.100 us |  40,919.200 us |  43,598.100 us |
+        |           RemoveOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook3 |       3.350 us |      0.6774 us |      0.4031 us |       3.350 us |       2.650 us |       4.050 us |
+        |       RemoveSellOrder_AtTheEnd |           RemoveInTheEnd |     OrderBook3 |       6.950 us |      1.2049 us |      0.6302 us |       6.900 us |       6.100 us |       8.100 us |
+        |                                |                          |                |                |                |                |                |                |                |
+        |        RemoveOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook1 |  14,949.712 us |    436.8193 us |    228.4650 us |  14,922.950 us |  14,646.800 us |  15,250.800 us |
+        |    RemoveSellOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook1 |  28,518.850 us |    858.3602 us |    510.7964 us |  28,517.250 us |  27,873.950 us |  29,413.850 us |
+        |        RemoveOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook2 |  14,833.610 us |  1,041.8345 us |    689.1090 us |  14,504.400 us |  14,150.500 us |  16,153.700 us |
+        |    RemoveSellOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook2 |  29,827.520 us |  2,286.4743 us |  1,512.3612 us |  29,248.650 us |  27,981.400 us |  32,655.100 us |
+        |        RemoveOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook3 |       6.770 us |      0.9149 us |      0.6052 us |       7.050 us |       5.850 us |       7.550 us |
+        |    RemoveSellOrder_InTheMiddle |        RemoveInTheMiddle |     OrderBook3 |       7.033 us |      0.8232 us |      0.4899 us |       7.200 us |       6.500 us |       7.900 us |
+        |                                |                          |                |                |                |                |                |                |                |
+        |            GetOrder_FromTheEnd |             GetLastOrder |     OrderBook1 |     893.556 us |     30.4464 us |     18.1182 us |     887.500 us |     871.400 us |     928.400 us |
+        |            GetOrder_FromTheEnd |             GetLastOrder |     OrderBook2 |     897.120 us |     39.6366 us |     26.2172 us |     896.850 us |     846.300 us |     945.600 us |
+        |            GetOrder_FromTheEnd |             GetLastOrder |     OrderBook3 |       7.080 us |      1.3779 us |      0.9114 us |       6.900 us |       5.500 us |       8.800 us |
+        |                                |                          |                |                |                |                |                |                |                |
+        |        GetSellOrder_FromTheEnd |         GetLastSellOrder |     OrderBook1 |  45,371.060 us |  5,678.6870 us |  3,756.0998 us |  44,030.300 us |  41,979.800 us |  53,285.800 us |
+        |        GetSellOrder_FromTheEnd |         GetLastSellOrder |     OrderBook2 |  41,252.088 us |    780.6247 us |    408.2818 us |  41,117.350 us |  40,761.000 us |  41,871.200 us |
+        |        GetSellOrder_FromTheEnd |         GetLastSellOrder |     OrderBook3 |       7.089 us |      1.6172 us |      0.9623 us |       6.700 us |       6.200 us |       9.200 us |
      */
     [SimpleJob(launchCount: 1, warmupCount: 1, targetCount: 10)]
     [MinColumn, MaxColumn, MeanColumn, MedianColumn]
@@ -157,6 +165,18 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
             OrderBookParam.RemoveOrder("Sell_OrderId" + (ordersCount / 2));
         }
 
+        [BenchmarkCategory(SingleOperationType.GetLastOrder), Benchmark]
+        public void GetOrder_FromTheEnd()
+        {
+            OrderBookParam.RemoveOrder("Buy_OrderId" + (ordersCount - 1));
+        }
+
+        [BenchmarkCategory(SingleOperationType.GetLastSellOrder), Benchmark]
+        public void GetSellOrder_FromTheEnd()
+        {
+            OrderBookParam.RemoveOrder("Sell_OrderId" + (ordersCount - 1));
+        }
+
         private void PrepareDataSet(IOrderBookTest orderBook)
         {
             orderBook.InidializeBuyOrders(buyOrderList);
@@ -173,5 +193,7 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
         public const string RemoveAtTheBeginning = "RemoveInTheBeginning";
         public const string RemoveInTheMiddle = "RemoveInTheMiddle";
         public const string RemoveInTheEnd = "RemoveInTheEnd";
+        public const string GetLastOrder = "GetLastOrder";
+        public const string GetLastSellOrder = "GetLastSellOrder";
     }
 }

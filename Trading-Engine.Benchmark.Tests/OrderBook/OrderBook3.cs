@@ -112,11 +112,11 @@ namespace Trading_Engine.Benchmark.Tests.OrderBook
 
         public Order GetOrder(string orderId)
         {
-            var foundOrder = _buyOrders.FirstOrDefault(order => order.OrderId == orderId);
+            var foundOrder = _buyOrdersLookUp.GetValueOrDefault(orderId)?.Value;
 
             if (foundOrder == null)
             {
-                foundOrder = _sellOrders.FirstOrDefault(order => order.OrderId == orderId);
+                foundOrder = _sellOrdersLookUp.GetValueOrDefault(orderId)?.Value;
             }
 
             return foundOrder;
